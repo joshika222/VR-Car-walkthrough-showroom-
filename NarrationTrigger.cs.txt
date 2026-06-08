@@ -1,0 +1,30 @@
+using UnityEngine;
+
+public class NarrationTrigger : MonoBehaviour
+{
+    public AudioSource narrationAudio;
+    public bool playOnce = true;
+
+    private bool hasPlayed = false;
+
+    void OnTriggerEnter(Collider other)
+    {
+        if (!other.CompareTag("Player")) return;
+
+        if (playOnce && hasPlayed) return;
+
+        if (narrationAudio != null && !narrationAudio.isPlaying)
+        {
+            narrationAudio.Play();
+            hasPlayed = true;
+        }
+    }
+
+    void OnTriggerExit(Collider other)
+    {
+        if (!other.CompareTag("Player")) return;
+
+        // Optional: stop audio when leaving
+        // narrationAudio.Stop();
+    }
+}

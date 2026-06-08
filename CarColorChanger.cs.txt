@@ -1,0 +1,87 @@
+using UnityEngine;
+using System.Collections.Generic;
+
+namespace ShowroomVR
+{
+    public class CarColorChanger : MonoBehaviour
+    {
+        [Header("Settings")]
+        [Tooltip("The Mesh Renderer of the car body. If empty, tries to find one.")]
+        public Renderer carBodyRenderer;
+        
+        [Tooltip("Index of the material to change (usually 0 or 1 depending on model)")]
+        public int materialIndex = 0;
+
+        [Header("Colors")]
+        public Color[] availableColors = new Color[] {
+            Color.red,
+            Color.blue,
+            Color.black,
+            Color.white,
+            new Color(0.1f, 0.5f, 0.1f), // Dark Green
+            new Color(0.5f, 0.0f, 0.5f)  // Purple
+        };
+
+        private int currentColorIndex = 0;
+
+        void Start()
+        {
+            if (carBodyRenderer == null)
+            {
+                // Try to auto-find a renderer with "Paint" or "Body" in the material name
+                var renderers = GetComponentsInChildren<Renderer>();
+                foreach (var r in renderers)
+                {
+                    foreach (var mat in r.sharedMaterials)
+                    {
+                        if (mat != null && (mat.name.ToLower().Contains("paint") || mat.name.ToLower().Contains("body")))
+                        {
+                            carBodyRenderer = r;
+                            // Find which index this material is
+                            for(int i=0; i<r.sharedMaterials.Length; i++)
+                            {
+                                if(r.sharedMaterials[i] == mat)
+                                {
+                                    materialIndex = i;
+                                    break;
+                                }
+                            }
+                            break;
+                        }
+                    }
+                    if (carBodyRenderer != null) break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Call this method from a UI Button or VR Trigger
+        /// </summary>
+        public void NextColor()
+        {
+            if (carBodyRenderer == null)
+            {
+                Debug.LogError("Car Body Renderer not assigned!");
+                return;
+            }
+
+            currentColorIndex = (currentColorIndex + 1) % availableColors.Length;
+            ApplyColor(availableColors[currentColorIndex]);
+        }
+        
+        public void SetColorIsRed() => ApplyColor(Color.red);
+        public void SetColorIsBlue() => ApplyColor(Color.blue);
+        public void SetColorIsBlack() => ApplyColor(Color.black);
+
+        private void ApplyColor(Color c)
+        {
+            // We need to modify the material instance
+            Material[] mats = carBodyRenderer.materials;
+            if (materialIndex < mats.Length)
+            {
+                mats[materialIndex].color = c;
+                carBodyRenderer.materials = mats; // Re-assign to apply
+            }
+        }
+    }
+}
